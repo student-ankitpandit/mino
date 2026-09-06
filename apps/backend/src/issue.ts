@@ -130,10 +130,10 @@ router.get("/issue/:sectionId", authMiddleware, async (req, res) => {
 })
 
 router.get("/issues", authMiddleware, async (req, res) => {
-  const boardId = req.query.boardId
+  const boardId = req.query.boardId as string
   const userId = req.id
 
-  if (boardId) {
+  if (!boardId) {
     return res.status(400).json({
       success: false,
       message: "boardId is required"
@@ -142,7 +142,7 @@ router.get("/issues", authMiddleware, async (req, res) => {
 
   const issues = await prisma.issue.findMany({
     where: {
-      id: boardId,
+      boardId: boardId,
       board: {
         org: {
           memberships: {

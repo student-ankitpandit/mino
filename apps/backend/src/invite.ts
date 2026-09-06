@@ -162,7 +162,7 @@ router.post("/accept-invite/:invitationId", authMiddleware, async (req, res) => 
   })
 })
 
-router.get("/membership/:orgId", async (req, res) => {
+router.get("/membership/:orgId", authMiddleware, async (req, res) => {
   const orgId = req.params.orgId as string
   const adminId = req.id
 
@@ -200,7 +200,7 @@ router.get("/membership/:orgId", async (req, res) => {
   })
 })
 
-router.delete("/membership/:orgId/:userId", async (req, res) => {
+router.delete("/membership/:orgId/:userId", authMiddleware, async (req, res) => {
   const orgId = req.params.orgId as string
   const userId = req.params.userId as string
   const adminId = req.id

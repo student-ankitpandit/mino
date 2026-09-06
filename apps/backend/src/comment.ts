@@ -6,7 +6,7 @@ import { commentCreateSchema } from "../schema"
 const router = express.Router()
 
 router.post("/comment/:issueId", authMiddleware, async (req, res) => {
-  const { success, data } = commentCreateSchema.safeDecode(req.body)
+  const { success, data } = commentCreateSchema.safeParse(req.body)
   if (!success) {
     return res.status(400).json({
       success: false,

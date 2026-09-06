@@ -114,8 +114,8 @@ class WsManager {
           const board = await prisma.board.findFirst({
               where:{
                   id:boardId,
-                    organization:{
-                        membership:{
+                    org:{
+                        memberships:{
                             some:{
                               userId: payload.id
                             },

@@ -33,17 +33,16 @@ router.get("/boards", authMiddleware, async (req, res) => {
     })
   }
   
-  const board = await prisma.board.create({
-    data: {
-      title: data.title,
-      orgId: orgId
+  const boards = await prisma.board.findMany({
+    where: {
+      orgId: data.orgId
     }
   })
 
-  return res.status(201).json({
+  return res.status(200).json({
     success: true,
-    message: "board created successfully",
-    board: board
+    message: "fetched boards successfully",
+    data: boards[0]?.id
   })
 })
 

@@ -52,7 +52,7 @@ router.get("/organizations", authMiddleware, async (req, res) => {
 
   const membership = await prisma.membership.findMany({
     where: {
-      id: userId
+      userId: userId
     },
     include: {
       org: true
