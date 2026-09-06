@@ -1,55 +1,249 @@
-import type { WebSocket } from "ws"
-import { WebSocketServer } from "ws"
+import { WebSocket, WebSocketServer} from "ws";
+import type { RawData } from "ws";
+import jwt from "jsonwebtoken";
+import { prisma } from "../../packages/db";
 
-const wss = new WebSocketServer({ port: 3002 })
+const JWT_SECRET: string = (() => {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+        throw new Error("JWT_SECRET environment variable is not set");
+    }
+    return secret;
+})();
 
-const BOARDS: Record<string, { userId: string, socket: WebSocket }[]> = {
-  
+type Payload = {
+  id: string;
+  email: string;
+};
+
+const WS_PORT = process.env.WS_PORT ? Number(process.env.WS_PORT) : 3002;
+
+interface Issue {
+    id:string,
+    title:string,
+    section:string
 }
 
-wss.on("connection", (socket) => {
-  socket.on("message", (data) => {
-    const parsedData = JSON.parse(data.toString())
-    
-    if (parsedData.type === "join") {
-      const boardId = parsedData.boardId
-      if (!BOARDS[boardId]) {
-        BOARDS[boardId] = []
-      }
-      
-      const newUserId = Math.random().toString()
-      
-      for (let i = 0; i < BOARDS[boardId].length; i++) {
-        const user = BOARDS[boardId][i]
-        user?.socket.send(JSON.stringify({
-          type: "join",
-          userId: newUserId
-        }))
-      }
-      
-      BOARDS[boardId].push({ userId: newUserId, socket: socket })
+class WsManager {
+  private static instance: WsManager;
 
-      //broadcast to all other connected/alive user on the ws sever except itself
-      socket.send(JSON.stringify({
-        type: "initial_state",
-        users: BOARDS[boardId].filter((u) => u.userId != newUserId).map((u) => ({ id: u.userId }))
-      }))
+  private wss: WebSocketServer;
+
+  private boards: Record<
+    string,
+    {
+      id: string;
+      socket: WebSocket;
+    }[]
+  > = {};
+
+  // Keeps track of which board each socket joined
+  private joinedRooms = new Map<WebSocket, string>();
+
+  private constructor() {
+    this.wss = new WebSocketServer({
+      port: WS_PORT,
+    });
+
+    this.initialize();
+  }
+
+  public static getInstance(): WsManager {
+    if (!WsManager.instance) {
+      WsManager.instance = new WsManager();
     }
 
-    socket.on("close", () => {
-      Object.entries(BOARDS).forEach(([boardId, users]) => {
-        const userExists = users.find(u => u.socket == socket)
-        if (userExists) {
-          //removing the user from the board
-          BOARDS[boardId] = users.filter(x => x.socket != socket)
-          users.forEach(({ socket }) => {
-            socket.send(JSON.stringify({
-              type: "leave",
-              userId: userExists.userId
-            }))
-          })
+    return WsManager.instance;
+  }
+
+  private initialize() {
+    this.wss.on("connection", (socket, req) => {
+      const query = req.url?.split("?")[1] ?? "";
+      const token = new URLSearchParams(query).get("token");
+
+      if (!token) {
+        socket.close();
+        return;
+      }
+
+      let payload: Payload;
+
+      try {
+        payload = jwt.verify(token, JWT_SECRET) as Payload;
+      } catch {
+        socket.close();
+        return;
+      }
+
+      socket.on("message", async (data) => {
+        await this.handleMessage(data, payload, socket);
+      });
+
+      socket.on("close", () => {
+        this.handleDisconnect(socket);
+      });
+    });
+  }
+
+  private async handleMessage(
+        data: RawData,
+        payload: Payload,
+        socket: WebSocket
+    ){
+        try{
+            let parsedData;
+            try {
+              parsedData = JSON.parse(data.toString());
+            } catch {
+              return;
+            }
+    
+            const user = await prisma.user.findUnique({
+            where: {
+                id: payload.id,
+            },
+            });
+    
+            if (!user) {
+              socket.close();
+              return;
+            }
+    
+          if (parsedData.type === "join") {
+          const boardId = parsedData.boardId;
+          const board = await prisma.board.findFirst({
+              where:{
+                  id:boardId,
+                    organization:{
+                        membership:{
+                            some:{
+                              userId: payload.id
+                            },
+                        },
+                    },
+                },
+            });
+    
+            if (!board) {
+                socket.close();
+                return;
+            }
+    
+            const previousBoardId= this.joinedRooms.get(socket);
+            if(previousBoardId && previousBoardId !== boardId && this.boards[previousBoardId]) {
+                this.boards[previousBoardId] = this.boards[previousBoardId].filter(
+                    (member) => member.socket !== socket
+                );
+
+                this.boards[previousBoardId].forEach((member) => {
+                    member.socket.send(JSON.stringify({ type: "leave", id: payload.id }));
+                });
+
+                if(this.boards[previousBoardId].length === 0){
+                    delete this.boards[previousBoardId]
+                }
+            }
+
+            this.joinedRooms.set(socket, boardId);
+        
+    
+          if (!this.boards[boardId]) {
+            this.boards[boardId] = [];
+          }
+    
+          this.boards[boardId].forEach(({ socket }) => {
+            socket.send(
+              JSON.stringify({
+                type: "join",
+                id: payload.id,
+              })
+            );
+          });
+    
+          this.boards[boardId].push({
+            id: payload.id,
+            socket,
+          });
+    
+          socket.send(
+            JSON.stringify({
+              type: "initial_state",
+              users: this.boards[boardId]
+                  .filter((user) => user.id !== payload.id)
+                  .map((user) => user.id)
+                })
+              );
+            }
+
+            else if(parsedData.type === "issue_moved"){
+            const boardId= this.joinedRooms.get(socket);
+            if(!boardId){
+                return;
+            }
+        
+            if(!this.boards[boardId]) {
+                return;
+            }
+
+            this.boards[boardId].filter((member) => member.socket !== socket).forEach((member) => { 
+                member.socket.send(
+                    JSON.stringify({
+                        type: "issue_moved",
+                        issueId: parsedData.issueId,
+                        sectionId: parsedData.sectionId,
+                    })
+                );
+            });
+          }
+          
+          else if(parsedData.type === "board_changed"){
+              const boardId= this.joinedRooms.get(socket);
+              if(!boardId){
+                  return;
+              }
+
+              if(!this.boards[boardId]){
+                  return;
+              }
+
+              this.boards[boardId].filter((member) => member.socket !== socket).forEach((member)=>{
+                  member.socket.send(JSON.stringify({ type: "board_changed" }));
+              });
+          }
+          } catch (error) {
+              console.error("Failed to handle message:", error);
+          }
         }
-      })  
-    })
-  })
-})
+
+        private handleDisconnect(socket: WebSocket) {
+          const joinedRoom = this.joinedRooms.get(socket);
+
+          if (!joinedRoom) {
+            return;
+          }
+
+          if (!this.boards[joinedRoom]) {
+            return;
+          }
+
+          const leaving = this.boards[joinedRoom].find((user) => user.socket === socket);
+
+          this.boards[joinedRoom] = this.boards[joinedRoom].filter(
+            (user) => user.socket !== socket
+          );
+
+          if (leaving) {
+            this.boards[joinedRoom].forEach((member) => {
+              member.socket.send(JSON.stringify({ type: "leave", id: leaving.id }));
+            });
+          }
+
+          if (this.boards[joinedRoom].length === 0) {
+            delete this.boards[joinedRoom];
+          }
+
+          this.joinedRooms.delete(socket);
+        }
+      }
+
+    WsManager.getInstance();

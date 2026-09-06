@@ -85,7 +85,7 @@ router.post("/invite", authMiddleware, async (req, res) => {
   return res.status(200).json({
     success: true,
     message: "invitation link sent successfully",
-    data: inviteData
+    invitationId: invitationToSent.id
   })
 })
 

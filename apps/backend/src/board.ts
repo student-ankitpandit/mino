@@ -47,7 +47,7 @@ router.get("/boards", authMiddleware, async (req, res) => {
   })
 })
 
-router.post("board/create", authMiddleware, async (req, res) => {
+router.post("/board/create", authMiddleware, async (req, res) => {
   const { success, data } = createBoardSchema.safeParse(req.body)
 
   if (!success) {
@@ -66,17 +66,24 @@ router.post("board/create", authMiddleware, async (req, res) => {
     })
   }
 
-  const board = prisma.board.create({
+  const board = await prisma.board.create({
     data: {
       title: data.title,
       orgId: data.orgId
     }
   })
 
+  if(!board) {
+    return res.status(500).json({
+      success: false,
+      message: "failed to create the board"
+    })
+  }
+
   return res.status(201).json({
     success: true,
     message: "board created successfully",
-    data: board
+    data: board.id
   })
 })
 

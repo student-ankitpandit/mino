@@ -6,7 +6,7 @@ import { checkAdminRole } from "../utils/checkAdminRole"
 
 const router = express.Router()
 
-router.post("organization/create", authMiddleware, async (req, res) => {
+router.post("/organization/create", authMiddleware, async (req, res) => {
   const { success, data } = createOrgSchema.safeParse(req.body) 
   
   if (!success) {
@@ -42,7 +42,8 @@ router.post("organization/create", authMiddleware, async (req, res) => {
 
   return res.status(201).json({
     success: true,
-    message: "organization created successfully"
+    message: "organization created successfully",
+    orgId: org.id
   })
 })
 
@@ -71,7 +72,7 @@ router.get("/organizations", authMiddleware, async (req, res) => {
     })
 })
 
-router.patch("organization/:orgId", authMiddleware, async (req, res) => {
+router.patch("/organization/:orgId", authMiddleware, async (req, res) => {
   const {success, data } = updateOrgSchema.safeParse(req.body) 
 
   if (!success) {
