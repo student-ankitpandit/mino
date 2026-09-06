@@ -1,0 +1,235 @@
+import axios from "axios";
+
+export const API_BASE_URL = "http://localhost:3001/api/v1";
+export const WS_BASE_URL = "ws://localhost:3002";
+
+export const api = axios.create({
+  baseURL: API_BASE_URL,
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = token;
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Don't auto-redirect if checking auth or on login page
+      const path = window.location.pathname;
+      if (path !== "/login" && path !== "/signup") {
+        localStorage.removeItem("token");
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+export interface User {
+  id: string;
+  email: string;
+}
+
+export interface Org {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface Membership {
+  id: string;
+  userId: string;
+  orgId: string;
+  role: "admin" | "member";
+  user?: User;
+  org?: Org;
+}
+
+export interface Board {
+  id: string;
+  title: string;
+  orgId: string;
+  section?: Section[];
+  issues?: Issue[];
+  org?: Org;
+}
+
+export interface Section {
+  id: string;
+  title: string;
+  boardId: string;
+  issues?: Issue[];
+}
+
+export interface Comment {
+  id: string;
+  comment: string;
+  issueId: string;
+  userId?: string | null;
+  user?: User;
+  createdAt?: string;
+}
+
+export interface IssueMapping {
+  id: string;
+  userId: string;
+  issueId: string;
+  user?: User;
+}
+
+export interface Issue {
+  id: string;
+  title: string;
+  description: string;
+  boardId: string;
+  sectionId: string;
+  comments?: Comment[];
+  issueMappings?: IssueMapping[];
+}
+
+export const authApi = {
+  signup: async (email: string, password: string) => {
+    const res = await api.post("/signup", { email, password });
+    return res.data;
+  },
+  login: async (email: string, password: string) => {
+    const res = await api.post("/login", { email, password });
+    return res.data;
+  },
+  me: async () => {
+    const res = await api.get("/me");
+    return res.data;
+  },
+};
+
+export const orgApi = {
+  getOrganizations: async (): Promise<Membership[]> => {
+    const res = await api.get("/organizations");
+    return res.data.data || [];
+  },
+  createOrganization: async (name: string, description: string) => {
+    const res = await api.post("/organization/create", { name, description });
+    return res.data;
+  },
+  updateOrganization: async (orgId: string, name?: string, description?: string) => {
+    const res = await api.patch(`/organization/${orgId}`, { name, description });
+    return res.data;
+  },
+  deleteOrganization: async (orgId: string) => {
+    const res = await api.delete(`/organization/${orgId}`);
+    return res.data;
+  },
+  getMembers: async (orgId: string): Promise<Membership[]> => {
+    const res = await api.get(`/membership/${orgId}`);
+    return res.data.data?.membership || [];
+  },
+  removeMember: async (orgId: string, userId: string) => {
+    const res = await api.delete(`/membership/${orgId}/${userId}`);
+    return res.data;
+  },
+  inviteMember: async (orgId: string, email: string) => {
+    const res = await api.post("/invite", { orgId, email });
+    return res.data;
+  },
+  acceptInvite: async (invitationId: string, orgId: string) => {
+    const res = await api.post(`/accept-invite/${invitationId}`, { orgId });
+    return res.data;
+  },
+};
+
+export const boardApi = {
+  getBoards: async (orgId: string): Promise<Board[]> => {
+    const res = await api.get("/boards", { params: { orgId } });
+    return Array.isArray(res.data.data) ? res.data.data : [];
+  },
+  getBoard: async (boardId: string): Promise<Board> => {
+    const res = await api.get(`/board/${boardId}`);
+    return res.data.data;
+  },
+  createBoard: async (orgId: string, title: string) => {
+    const res = await api.post("/board/create", { orgId, title });
+    return res.data;
+  },
+  updateBoard: async (boardId: string, title: string) => {
+    const res = await api.patch(`/board/${boardId}`, { title });
+    return res.data;
+  },
+  deleteBoard: async (boardId: string) => {
+    const res = await api.delete(`/board/${boardId}`);
+    return res.data;
+  },
+};
+
+export const sectionApi = {
+  createSection: async (boardId: string, title: string): Promise<Section> => {
+    const res = await api.post("/section", { boardId, title });
+    return res.data.data;
+  },
+  getSections: async (boardId: string): Promise<Section[]> => {
+    const res = await api.get("/sections", { params: { boardId } });
+    return res.data.data || [];
+  },
+  updateSection: async (sectionId: string, title: string) => {
+    const res = await api.patch(`/section/${sectionId}`, { title });
+    return res.data;
+  },
+  deleteSection: async (sectionId: string) => {
+    const res = await api.delete(`/section/${sectionId}`);
+    return res.data;
+  },
+};
+
+export const issueApi = {
+  createIssue: async (sectionId: string, title: string, description: string): Promise<Issue> => {
+    const res = await api.post(`/issue/${sectionId}`, { title, description });
+    return res.data.data;
+  },
+  getIssuesByBoard: async (boardId: string): Promise<Issue[]> => {
+    const res = await api.get("/issues", { params: { boardId } });
+    return res.data.data || [];
+  },
+  getIssuesBySection: async (sectionId: string): Promise<Issue[]> => {
+    const res = await api.get(`/issue/${sectionId}`);
+    return res.data.data || [];
+  },
+  updateIssue: async (issueId: string, title: string, description: string) => {
+    const res = await api.patch(`/issue/${issueId}`, { title, description });
+    return res.data;
+  },
+  moveIssue: async (issueId: string, sectionId: string) => {
+    const res = await api.put(`/issue/move/${issueId}/${sectionId}`);
+    return res.data;
+  },
+  deleteIssue: async (issueId: string) => {
+    const res = await api.delete(`/issue/${issueId}`);
+    return res.data;
+  },
+};
+
+export const commentApi = {
+  getComments: async (issueId: string): Promise<Comment[]> => {
+    const res = await api.get(`/comment/${issueId}`);
+    return res.data.data || [];
+  },
+  createComment: async (issueId: string, comment: string): Promise<Comment> => {
+    const res = await api.post(`/comment/${issueId}`, { comment });
+    return {
+      id: Math.random().toString(),
+      comment: res.data.data,
+      issueId,
+      user: res.data.user,
+    };
+  },
+  updateComment: async (commentId: string, comment: string) => {
+    const res = await api.patch(`/comment/${commentId}`, { comment });
+    return res.data;
+  },
+  deleteComment: async (commentId: string) => {
+    const res = await api.delete(`/comment/${commentId}`);
+    return res.data;
+  },
+};

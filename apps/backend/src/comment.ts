@@ -134,7 +134,7 @@ router.patch("/comment/:commentId", authMiddleware, async (req, res) => {
   if(!commentId) {
     return res.status(400).json({
       success: false,
-      error: "comment is required"
+      error: "commentId is required"
     })
   }
 
@@ -170,11 +170,36 @@ router.patch("/comment/:commentId", authMiddleware, async (req, res) => {
     })
   }
 
+  const newCommentText = req.body.comment
+  if (!newCommentText) {
+    return res.status(400).json({
+      success: false,
+      error: "comment text is required"
+    })
+  }
+
+  const updated = await prisma.comment.update({
+    where: {
+      id: commentId
+    },
+    data: {
+      comment: newCommentText
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true
+        }
+      }
+    }
+  })
+
   return res.status(200).json({
     success: true,
     message: "comment updated successfully",
-    data: comment.comment,
-    user: comment.user
+    data: updated.comment,
+    user: updated.user
   })
 })
 

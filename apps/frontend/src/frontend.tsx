@@ -8,6 +8,16 @@
 import { createRoot } from "react-dom/client";
 import { StrictMode } from "react";
 import { App } from "./App";
+import "./index.css";
+
+// Ensure signature dark theme is active and cleanup any legacy theme storage
+if (typeof document !== "undefined") {
+  document.documentElement.classList.add("dark");
+  document.documentElement.classList.remove("light");
+  try {
+    localStorage.removeItem("mino-theme");
+  } catch {}
+}
 
 const elem = document.getElementById("root")!;
 const app = (

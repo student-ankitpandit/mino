@@ -7,17 +7,15 @@ import { checkAdminRole } from "../utils/checkAdminRole"
 const router = express.Router()
 
 router.get("/boards", authMiddleware, async (req, res) => {
-  const { success, data } = createBoardSchema.safeParse(req.body)
+  const userId = req.id
+  const orgId = (req.query.orgId) as string
 
-  if (!success) {
+  if (!orgId) {
     return res.status(400).json({
       success: false,
-      error: "please enter valid inputs"
+      error: "orgId is required"
     })
   }
-
-  const userId = req.id
-  const orgId = req.query.orgId as string
 
   const membership = await prisma.membership.findFirst({
     where: {
@@ -35,14 +33,76 @@ router.get("/boards", authMiddleware, async (req, res) => {
   
   const boards = await prisma.board.findMany({
     where: {
-      orgId: data.orgId
+      orgId: orgId
     }
   })
 
   return res.status(200).json({
     success: true,
     message: "fetched boards successfully",
-    data: boards[0]?.id
+    data: boards
+  })
+})
+
+router.get("/board/:boardId", authMiddleware, async (req, res) => {
+  const userId = req.id
+  const boardId = req.params.boardId as string
+
+  const board = await prisma.board.findUnique({
+    where: {
+      id: boardId,
+      org: {
+        memberships: {
+          some: {
+            userId: userId
+          }
+        }
+      }
+    },
+    include: {
+      section: {
+        include: {
+          issues: {
+            include: {
+              issueMappings: {
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      email: true
+                    }
+                  }
+                }
+              },
+              comments: {
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      email: true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      org: true
+    }
+  })
+
+  if (!board) {
+    return res.status(404).json({
+      success: false,
+      error: "board not found"
+    })
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: "board fetched successfully",
+    data: board
   })
 })
 

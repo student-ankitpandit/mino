@@ -1,57 +1,36 @@
-
-
-import { BrowserRouter, Route, Routes, useParams } from "react-router"
-import { useEffect, useState } from "react";
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router";
+import { AuthProvider } from "./context/AuthContext";
+import { HomePage } from "./pages/HomePage";
+import { AuthPage } from "./pages/AuthPage";
+import { DashboardPage } from "./pages/DashboardPage";
+import { CreateOrgPage } from "./pages/CreateOrgPage";
+import { SettingsPage } from "./pages/SettingsPage";
+import { BoardPage } from "./pages/BoardPage";
+import { ChangelogPage } from "./pages/ChangelogPage";
+import { PrivacyTermsPage } from "./pages/PrivacyTermsPage";
 
 export function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/board/:boardId" element={<Board />}>
-          
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/login" element={<AuthPage />} />
+          <Route path="/signup" element={<AuthPage />} />
+          <Route path="/create-org" element={<CreateOrgPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/board/:boardId" element={<BoardPage />} />
+          <Route path="/changelog" element={<ChangelogPage />} />
+          <Route path="/privacy-terms" element={<PrivacyTermsPage />} />
+          <Route path="/privacy" element={<PrivacyTermsPage />} />
+          <Route path="/terms" element={<PrivacyTermsPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
-}
-
-function Board() {
-  const { boardId } = useParams()
-  const [users, setUsers] = useState([])
-  
-  useEffect(() => {
-    const ws = new WebSocket('ws://localhost:3002')
-    ws.onmessage = (ev) => {
-      const parsedData = JSON.parse(ev.data)
-      if (parsedData.type === "initial_state") {
-        setUsers(parsedData.users)
-      }
-
-      if (parsedData.type === "join") {
-        setUsers(u => [...u, { id: parsedData.userId }])
-      }
-
-      if (parsedData.type === "leave") {
-        setUsers(u => u.filter(x => x.id != parsedData.userId))
-      }
-    }
-
-    ws.onopen = () => {
-      ws.send(JSON.stringify({
-        type: "join",
-        boardId: boardId
-      }))
-    }
-    
-    // return () => {
-    //   ws.close()
-    // }
-  }, []) 
-  
-  return <div>
-    <h1>You're on board {boardId}</h1>
-    currently alive users - {JSON.stringify(users)}
-  </div>
 }
 
 export default App;

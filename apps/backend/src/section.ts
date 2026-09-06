@@ -54,17 +54,39 @@ router.post("/section", authMiddleware, async (req, res) => {
 })
 
 router.get("/sections", authMiddleware, async (req, res) => {
-  const orgId = req.query.orgId as string
+  const orgId = req.query.orgId as string 
+  const boardId = req.query.boardId as string
   const userId = req.id
   
-  if (!orgId) {
-    return res.status(400).json({
-      success: false,
-      error: "orgId is required"
+  if (boardId) {
+    const board = await prisma.board.findFirst({
+      where: {
+        id: boardId,
+        org: {
+          memberships: {
+            some: {
+              userId: userId
+            }
+          }
+        }
+      }
     })
-  }
 
-  const membership = await prisma.membership.findFirst({
+    if (!board) {
+      return res.status(403).json({
+        success: false,
+        error: "board not found"
+      })
+    }
+
+    if(!orgId) {
+      return res.status(400).json({
+        success: false,
+        error: "orgId is required"
+      })
+    }
+
+    const membership = await prisma.membership.findFirst({
     where: {
       userId: userId,
       orgId: orgId
@@ -74,32 +96,39 @@ router.get("/sections", authMiddleware, async (req, res) => {
   if (!membership) {
     return res.status(403).json({
       success: false,
-      error: "forbidden, you're have to access to read this resource"
-    })
-  }
-  
-  const boards = await prisma.board.findMany({
-    where: {
-      id: orgId 
-    },
-    include: {
-      section: true
-    }
-  })
-
-  if (!boards) {
-    return res.status(400).json({
-      success: false,
-      error: "section not found"
+      error: "forbidden, you don't have access to read this resource"
     })
   }
 
-  return res.status(200).json({
-    success: true,
-    message: "fetched all sections successfully",
-    data: boards
-  })
-  
+    const sections = await prisma.section.findMany({
+      where: {
+        boardId: boardId
+      },
+      include: {
+        issues: {
+          include: {
+            issueMappings: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    email: true
+                  }
+                }
+              }
+            },
+            comments: true
+          }
+        }
+      }
+    })
+
+    return res.status(200).json({
+      success: true,
+      message: "fetched all sections successfully",
+      data: sections
+    })
+  }
 })
 
 router.patch("/section/:sectionId", authMiddleware, async (req, res) => {

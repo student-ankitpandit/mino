@@ -319,11 +319,11 @@ router.put("/issue/move/:issueId/:sectionId", authMiddleware, async (req, res) =
   })
 })
 
-router.delete("/isssue/:issueId", authMiddleware, async (req, res) => {
+router.delete("/issue/:issueId", authMiddleware, async (req, res) => {
   const userId = req.id
-  const issueId = req.params.IssueId as string
+  const issueId = (req.params.issueId || req.params.IssueId) as string
 
-  if(issueId) {
+  if (!issueId) {
     return res.status(400).json({
       success: false,
       message: "issueId is required"
@@ -366,11 +366,11 @@ router.delete("/isssue/:issueId", authMiddleware, async (req, res) => {
     })
   }
 
-  await prisma.issue.delete({
-    where: {
-      id: issue.id
-    }
-  })
+  await prisma.$transaction([
+    prisma.comment.deleteMany({ where: { issueId: issue.id } }),
+    prisma.issueMapping.deleteMany({ where: { issueId: issue.id } }),
+    prisma.issue.delete({ where: { id: issue.id } })
+  ])
 
   return res.status(200).json({
     success: true,
