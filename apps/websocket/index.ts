@@ -16,8 +16,7 @@ type Payload = {
   email: string;
 };
 
-const WS_PORT = process.env.WS_PORT ? Number(process.env.WS_PORT) : 3002;
-
+const WS_PORT = Number(process.env.PORT || process.env.WS_PORT || 3002);
 interface Issue {
     id:string,
     title:string,
