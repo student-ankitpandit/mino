@@ -1,7 +1,7 @@
 import { WebSocket, WebSocketServer} from "ws";
 import type { RawData } from "ws";
 import jwt from "jsonwebtoken";
-import { prisma } from "../../packages/db";
+import { prisma } from "db/client";
 
 const JWT_SECRET: string = (() => {
     const secret = process.env.JWT_SECRET;
