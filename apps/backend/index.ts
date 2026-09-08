@@ -7,10 +7,12 @@ import issueRoutes from "./src/issue.ts"
 import commentRoutes from "./src/comment.ts"
 import inviteRoutes from "./src/invite.ts"
 import cors from "cors"
+import cookieParser from "cookie-parser"
 
 const app = express()
 
-app.use(cors({ origin: "http://localhost:3000" }))
+app.use(cors({ origin: "https://trymino.vercel.app", credentials: true }))
+app.use(cookieParser())
 app.use(express.json())
 
 app.use("/api/v1", userRoutes)
