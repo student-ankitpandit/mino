@@ -10,8 +10,19 @@ const envWsUrl =
   process.env.VITE_WS_URL ||
   "";
 
-export const BACKEND_BASE_URL = envApiUrl || "http://localhost:3001/api/v1";
-export const WS_BASE_URL = envWsUrl || "ws://localhost:3002";
+const formatApiUrl = (url: string) => {
+  if (!url) return "http://localhost:3001/api/v1";
+  const trimmed = url.replace(/\/+$/, "");
+  return trimmed.endsWith("/api/v1") ? trimmed : `${trimmed}/api/v1`;
+};
+
+const formatWsUrl = (url: string) => {
+  if (!url) return "ws://localhost:3002";
+  return url.replace(/\/+$/, "");
+};
+
+export const BACKEND_BASE_URL = formatApiUrl(envApiUrl);
+export const WS_BASE_URL = formatWsUrl(envWsUrl);
 
 export const api = axios.create({
   baseURL: BACKEND_BASE_URL,
