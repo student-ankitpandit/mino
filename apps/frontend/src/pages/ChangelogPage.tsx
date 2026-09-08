@@ -73,58 +73,6 @@ const RELEASES: ReleaseItem[] = [
       },
     ],
   },
-  {
-    version: "v1.2",
-    badge: "Major Update",
-    badgeColor: "bg-slate-500/10 text-slate-400 border-white/[0.08]",
-    date: "August 2026",
-    title: "Organization Hubs & Workspace Controls",
-    description:
-      "Introduced organization-level team controls, flexible board permissions, and improved navigation across projects.",
-    highlights: [
-      {
-        icon: <Shield className="h-4 w-4 text-slate-400" />,
-        title: "Workspace Switcher",
-        description:
-          "Fast organization dropdown to pivot between different projects and team environments effortlessly.",
-      },
-      {
-        icon: <Layers className="h-4 w-4 text-slate-400" />,
-        title: "Dynamic List Creation",
-        description:
-          "Add and rearrange custom lists to reflect custom team stages like Backlog, In Review, and Shipped.",
-      },
-      {
-        icon: <Users className="h-4 w-4 text-slate-400" />,
-        title: "Member Roster & Roles",
-        description:
-          "View full team rosters and manage workspace access from a dedicated organization settings dashboard.",
-      },
-    ],
-  },
-  {
-    version: "v1.0",
-    badge: "Genesis",
-    badgeColor: "bg-slate-500/10 text-slate-400 border-white/[0.08]",
-    date: "July 2026",
-    title: "Initial Launch of Mino",
-    description:
-      "The first public release of Mino, bringing a clean, distraction-free alternative to bloated legacy project management tools.",
-    highlights: [
-      {
-        icon: <Layers className="h-4 w-4 text-slate-400" />,
-        title: "Core Kanban Canvas",
-        description:
-          "Basic list management, task cards, and simple visual progress tracking.",
-      },
-      {
-        icon: <Shield className="h-4 w-4 text-slate-400" />,
-        title: "Secure Authentication",
-        description:
-          "Fast email sign up, token authentication, and personal board workspaces.",
-      },
-    ],
-  },
 ];
 
 export function ChangelogPage() {
