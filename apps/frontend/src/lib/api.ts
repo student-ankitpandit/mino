@@ -18,7 +18,13 @@ const formatApiUrl = (url: string) => {
 
 const formatWsUrl = (url: string) => {
   if (!url) return "ws://localhost:3002";
-  return url.replace(/\/+$/, "");
+  let trimmed = url.replace(/\/+$/, "");
+  if (trimmed.startsWith("https://")) {
+    trimmed = trimmed.replace(/^https:\/\//, "wss://");
+  } else if (trimmed.startsWith("http://")) {
+    trimmed = trimmed.replace(/^http:\/\//, "ws://");
+  }
+  return trimmed;
 };
 
 export const BACKEND_BASE_URL = formatApiUrl(envApiUrl);
