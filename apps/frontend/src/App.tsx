@@ -10,6 +10,8 @@ import { BoardPage } from "./pages/BoardPage";
 import { ChangelogPage } from "./pages/ChangelogPage";
 import { PrivacyTermsPage } from "./pages/PrivacyTermsPage";
 
+import { ShowcaseBoard, ShowcaseDashboard, ShowcaseOrg, ShowcaseSettings } from "./pages/ShowcasePreview";
+
 export function App() {
   return (
     <AuthProvider>
@@ -26,6 +28,10 @@ export function App() {
           <Route path="/privacy-terms" element={<PrivacyTermsPage />} />
           <Route path="/privacy" element={<PrivacyTermsPage />} />
           <Route path="/terms" element={<PrivacyTermsPage />} />
+          <Route path="/showcase/board" element={<ShowcaseBoard />} />
+          <Route path="/showcase/dashboard" element={<ShowcaseDashboard />} />
+          <Route path="/showcase/org" element={<ShowcaseOrg />} />
+          <Route path="/showcase/settings" element={<ShowcaseSettings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

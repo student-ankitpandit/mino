@@ -1,13 +1,27 @@
 import axios from "axios";
 
+const getEnvVar = (key: string): string => {
+  try {
+    if (typeof import.meta !== "undefined" && (import.meta as any)?.env?.[key]) {
+      return (import.meta as any).env[key];
+    }
+  } catch {}
+  try {
+    if (typeof process !== "undefined" && process?.env?.[key]) {
+      return process.env[key] as string;
+    }
+  } catch {}
+  return "";
+};
+
 const envApiUrl =
-  process.env.BACKEND_URL ||
-  process.env.VITE_BACKEND_URL ||
+  getEnvVar("VITE_BACKEND_URL") ||
+  getEnvVar("BACKEND_URL") ||
   "";
 
 const envWsUrl =
-  process.env.WS_URL ||
-  process.env.VITE_WS_URL ||
+  getEnvVar("VITE_WS_URL") ||
+  getEnvVar("WS_URL") ||
   "";
 
 const formatApiUrl = (url: string) => {
