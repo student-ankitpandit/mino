@@ -1,11 +1,17 @@
 import axios from "axios";
 
 const getEnvVar = (key: string): string => {
+  // 1. Dynamic injection from dev server /env.js or build output
+  if (typeof window !== "undefined" && (window as any)?.__ENV__?.[key]) {
+    return (window as any).__ENV__[key];
+  }
+  // 2. Bundler import.meta.env
   try {
     if (typeof import.meta !== "undefined" && (import.meta as any)?.env?.[key]) {
       return (import.meta as any).env[key];
     }
   } catch {}
+  // 3. Statically inlined process.env
   try {
     if (typeof process !== "undefined" && process?.env?.[key]) {
       return process.env[key] as string;
@@ -25,13 +31,18 @@ const envWsUrl =
   "";
 
 const formatApiUrl = (url: string) => {
-  if (!url) return "http://localhost:3001/api/v1";
+  if (!url) {
+    if (typeof window !== "undefined" && window.location.hostname.includes("vercel.app")) {
+      return "https://mino-be.onrender.com/api/v1";
+    }
+    return "https://mino-be.onrender.com/api/v1";
+  }
   const trimmed = url.replace(/\/+$/, "");
   return trimmed.endsWith("/api/v1") ? trimmed : `${trimmed}/api/v1`;
 };
 
 const formatWsUrl = (url: string) => {
-  if (!url) return "ws://localhost:3002";
+  if (!url) return "wss://mino-ws.onrender.com";
   let trimmed = url.replace(/\/+$/, "");
   if (trimmed.startsWith("https://")) {
     trimmed = trimmed.replace(/^https:\/\//, "wss://");
@@ -46,6 +57,7 @@ export const WS_BASE_URL = formatWsUrl(envWsUrl);
 
 export const api = axios.create({
   baseURL: BACKEND_BASE_URL,
+  timeout: 60000,
 });
 
 api.interceptors.request.use((config) => {

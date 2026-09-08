@@ -33,11 +33,16 @@ export function AuthPage() {
       }
       navigate("/dashboard");
     } catch (err: any) {
-      const msg =
+      console.error("Auth failed:", err);
+      let msg =
         err.response?.data?.error ||
         err.response?.data?.message ||
         err.message ||
         "Authentication failed";
+
+      if (err.message === "Network Error" || err.code === "ERR_NETWORK") {
+        msg = "Network Error: Could not connect to backend. If the cloud server is waking up from sleep, please try again in a moment.";
+      }
       setError(msg);
     } finally {
       setLoading(false);

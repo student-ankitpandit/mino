@@ -156,6 +156,18 @@ const result = await build({
   ...cliConfig, // Merge in any CLI-provided options
 });
 
+// Generate env.js for production runtime
+const prodBackendUrl = process.env.BACKEND_URL || process.env.VITE_BACKEND_URL || "https://mino-be.onrender.com";
+const prodWsUrl = process.env.WS_URL || process.env.VITE_WS_URL || "wss://mino-ws.onrender.com";
+await Bun.write(
+  path.join(outdir, "env.js"),
+  `window.__ENV__ = {
+  BACKEND_URL: ${JSON.stringify(prodBackendUrl)},
+  WS_URL: ${JSON.stringify(prodWsUrl)},
+  NODE_ENV: ${JSON.stringify(process.env.NODE_ENV || "production")}
+};`
+);
+
 // Print the results
 const end = performance.now();
 
