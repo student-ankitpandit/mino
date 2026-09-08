@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useSearchParams } from "react-router";
+import React, { useState, useEffect } from "react";
+import { Link, useSearchParams, useLocation } from "react-router";
 import { MinoLogo } from "@/components/common/MinoLogo";
 import { useAuth } from "@/context/AuthContext";
 import { UserAvatar } from "@/components/common/UserAvatar";
@@ -16,13 +16,27 @@ import {
 
 export function PrivacyTermsPage() {
   const { user } = useAuth();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = searchParams.get("tab") === "terms" ? "terms" : "privacy";
-  const [activeTab, setActiveTab] = useState<"privacy" | "terms">(initialTab);
+
+  const getActiveTabFromLocation = (): "privacy" | "terms" => {
+    if (searchParams.get("tab") === "terms" || location.pathname === "/terms") {
+      return "terms";
+    }
+    return "privacy";
+  };
+
+  const [activeTab, setActiveTab] = useState<"privacy" | "terms">(getActiveTabFromLocation);
+
+  useEffect(() => {
+    setActiveTab(getActiveTabFromLocation());
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [location.pathname, searchParams]);
 
   const switchTab = (tab: "privacy" | "terms") => {
     setActiveTab(tab);
     setSearchParams({ tab });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
