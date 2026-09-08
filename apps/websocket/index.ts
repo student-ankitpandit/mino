@@ -2,6 +2,7 @@ import { WebSocket, WebSocketServer} from "ws";
 import type { RawData } from "ws";
 import jwt from "jsonwebtoken";
 import { prisma } from "db/client";
+import http from "http";
 
 const JWT_SECRET: string = (() => {
     const secret = process.env.JWT_SECRET;
@@ -26,6 +27,7 @@ interface Issue {
 class WsManager {
   private static instance: WsManager;
 
+  private server: http.Server;
   private wss: WebSocketServer;
 
   private boards: Record<
@@ -40,8 +42,17 @@ class WsManager {
   private joinedRooms = new Map<WebSocket, string>();
 
   private constructor() {
+    this.server = http.createServer((req, res) => {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ status: "healthy", service: "mino-ws" }));
+    });
+
     this.wss = new WebSocketServer({
-      port: WS_PORT,
+      server: this.server,
+    });
+
+    this.server.listen(WS_PORT, () => {
+      console.log(`WebSocket server running on port ${WS_PORT}`);
     });
 
     this.initialize();
