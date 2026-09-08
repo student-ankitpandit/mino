@@ -149,7 +149,9 @@ const result = await build({
   target: "browser",
   sourcemap: "linked",
   define: {
-    "process.env.NODE_ENV": JSON.stringify("production"),
+    "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "production"),
+    "process.env.BACKEND_URL": JSON.stringify(process.env.BACKEND_URL || process.env.VITE_BACKEND_URL || ""),
+    "process.env.WS_URL": JSON.stringify(process.env.WS_URL || process.env.VITE_WS_URL || ""),
   },
   ...cliConfig, // Merge in any CLI-provided options
 });

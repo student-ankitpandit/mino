@@ -1,10 +1,20 @@
 import axios from "axios";
 
-export const API_BASE_URL = "http://localhost:3001/api/v1";
-export const WS_BASE_URL = "ws://localhost:3002";
+const envApiUrl =
+  process.env.BACKEND_URL ||
+  process.env.VITE_BACKEND_URL ||
+  "";
+
+const envWsUrl =
+  process.env.WS_URL ||
+  process.env.VITE_WS_URL ||
+  "";
+
+export const BACKEND_BASE_URL = envApiUrl || "http://localhost:3001/api/v1";
+export const WS_BASE_URL = envWsUrl || "ws://localhost:3002";
 
 export const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: BACKEND_BASE_URL,
 });
 
 api.interceptors.request.use((config) => {
