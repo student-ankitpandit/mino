@@ -11,7 +11,22 @@ import cookieParser from "cookie-parser"
 
 const app = express()
 
-app.use(cors({ origin: "https://trymino.vercel.app", credentials: true }))
+const allowedOrigins = [
+  "https://trymino.vercel.app",
+  "http://localhost:3000",
+].filter(Boolean) as string[];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+)
 app.use(cookieParser())
 app.use(express.json())
 
@@ -23,5 +38,6 @@ app.use("/api/v1", issueRoutes)
 app.use("/api/v1", commentRoutes)
 app.use("/api/v1", inviteRoutes)
 
-app.listen(3001, () => console.log("server is running on port 3001"))
+const PORT = Number(process.env.PORT || 3001)
+app.listen(PORT, () => console.log(`server is running on port ${PORT}`))
 
