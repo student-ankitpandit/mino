@@ -33,7 +33,7 @@ interface ReleaseItem {
 
 const RELEASES: ReleaseItem[] = [
   {
-    version: "v2.0",
+    version: "v1.0",
     badge: "Current Release",
     badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/20",
     date: "September 2026",
@@ -266,7 +266,7 @@ export function ChangelogPage() {
         {/* Bottom Banner */}
         <div className="mt-16 rounded-3xl border border-blue-500/20 bg-gradient-to-r from-blue-950/40 via-slate-950 to-slate-950 p-8 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6">
           <div>
-            <h4 className="text-lg font-bold text-white">Experience Mino v2.0</h4>
+            <h4 className="text-lg font-bold text-white">Experience Mino v1.0</h4>
             <p className="text-xs text-slate-400 mt-1">
               Start organizing your tasks with fluid visual boards today.
             </p>

@@ -213,7 +213,7 @@ export function HomePage() {
               Mino
             </span>
             <span className="hidden sm:inline-block rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-600 dark:text-blue-400 border border-blue-500/20">
-              v2.0
+              v1.0
             </span>
           </Link>
 
@@ -1038,7 +1038,7 @@ export function HomePage() {
                 <ul className="space-y-2 text-slate-600 dark:text-slate-400">
                   <li>
                     <Link to="/changelog" className="hover:text-slate-900 dark:hover:text-white transition">
-                      Changelog (v2.0)
+                      Changelog (v1.0)
                     </Link>
                   </li>
                   <li>

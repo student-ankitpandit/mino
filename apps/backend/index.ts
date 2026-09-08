@@ -45,5 +45,6 @@ app.use("/api/v1", issueRoutes)
 app.use("/api/v1", commentRoutes)
 app.use("/api/v1", inviteRoutes)
 
-const PORT = process.env.PORT
+const PORT = Number(process.env.PORT || 3001)
 app.listen(PORT, () => console.log(`server is running on port ${PORT}`))
+
