@@ -145,6 +145,7 @@ const result = await build({
   entrypoints,
   outdir,
   plugins: [plugin],
+  publicPath: "/",
   minify: true,
   target: "browser",
   sourcemap: "linked",
