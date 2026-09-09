@@ -19,6 +19,7 @@ import {
   User as UserIcon,
   Save,
   CheckCircle2,
+  X,
 } from "lucide-react";
 
 export function SettingsPage() {
@@ -178,7 +179,13 @@ export function SettingsPage() {
     }
   };
 
-  const handleRemovePhoto = async () => {
+  const handleRemovePhoto = () => {
+    setProfileSuccess(null);
+    if (user?.googleId) {
+      setProfileError("Can't remove the default picture which is associated with Google.");
+      return;
+    }
+    setProfileError(null);
     setPreviewPicture(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -303,9 +310,19 @@ export function SettingsPage() {
           </div>
 
           {profileError && (
-            <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300 flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 flex-shrink-0" />
-              <span>{profileError}</span>
+            <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300 flex items-center justify-between gap-2 animate-fade-in">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                <span>{profileError}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setProfileError(null)}
+                className="text-rose-400 hover:text-white p-1 rounded transition"
+                title="Dismiss"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
             </div>
           )}
 
