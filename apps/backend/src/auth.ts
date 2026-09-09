@@ -97,6 +97,13 @@ router.get("/me", authMiddleware, async (req, res) => {
   const user = await prisma.user.findUnique({
     where: {
       id: userId
+    },
+    select: {
+      id: true,
+      email: true,
+      profilePicture: true,
+      name: true,
+      googleId: true,
     }
   })
 
@@ -109,7 +116,44 @@ router.get("/me", authMiddleware, async (req, res) => {
   
   return res.status(200).json({
     success: true,
-    email: user.email
+    email: user.email,
+    profilePicture: user.profilePicture,
+    name: user.name,
+    googleId: user.googleId,
+    id: user.id,
+  })
+})
+
+router.patch("/profile", authMiddleware, async (req, res) => {
+  const userId = req.id
+  const { profilePicture, name } = req.body
+
+  const updateData: Record<string, any> = {}
+  if (profilePicture !== undefined) updateData.profilePicture = profilePicture
+  if (name !== undefined) updateData.name = name
+
+  if (Object.keys(updateData).length === 0) {
+    return res.status(400).json({
+      success: false,
+      error: "nothing to update"
+    })
+  }
+
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: updateData,
+    select: {
+      id: true,
+      email: true,
+      profilePicture: true,
+      name: true,
+    }
+  })
+
+  return res.status(200).json({
+    success: true,
+    message: "profile updated successfully",
+    data: user
   })
 })
 

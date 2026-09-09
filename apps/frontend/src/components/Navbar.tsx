@@ -11,6 +11,7 @@ import {
   LogOut,
   Building2,
   Sparkles,
+  Settings,
 } from "lucide-react";
 import type { Membership } from "@/lib/api";
 
@@ -157,7 +158,14 @@ export function Navbar({
               onClick={() => setUserDropdownOpen(!userDropdownOpen)}
               className="flex items-center gap-2 rounded-full p-0.5 hover:ring-2 hover:ring-indigo-500/40 transition"
             >
-              <UserAvatar email={user?.email} id={user?.id} size="sm" showTooltip={false} />
+              <UserAvatar
+                email={user?.email}
+                id={user?.id}
+                name={user?.name}
+                profilePicture={user?.profilePicture}
+                size="sm"
+                showTooltip={false}
+              />
             </button>
 
             {userDropdownOpen && (
@@ -165,12 +173,33 @@ export function Navbar({
                 className="absolute right-0 mt-2 w-56 rounded-xl border border-white/[0.08] bg-slate-900/95 p-2 shadow-2xl backdrop-blur-xl z-50 animate-fade-in"
                 onClick={() => setUserDropdownOpen(false)}
               >
-                <div className="px-3 py-2 border-b border-white/[0.08]">
-                  <p className="text-xs text-slate-400">Signed in as</p>
-                  <p className="text-sm font-semibold text-white truncate">{user?.email}</p>
+                <div className="px-3 py-2 border-b border-white/[0.08] flex items-center gap-2.5">
+                  <UserAvatar
+                    email={user?.email}
+                    id={user?.id}
+                    name={user?.name}
+                    profilePicture={user?.profilePicture}
+                    size="md"
+                    showTooltip={false}
+                  />
+                  <div className="min-w-0 flex-1">
+                    {user?.name && (
+                      <p className="text-sm font-semibold text-white truncate">{user.name}</p>
+                    )}
+                    <p className="text-xs text-slate-400 truncate">{user?.email}</p>
+                  </div>
                 </div>
 
-                <div className="mt-1 pt-1">
+                <div className="mt-1 pt-1 space-y-1">
+                  <button
+                    type="button"
+                    onClick={() => navigate("/settings")}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-300 hover:bg-white/[0.06] hover:text-white transition"
+                  >
+                    <Settings className="h-4 w-4 text-slate-400" />
+                    <span>Profile & Settings</span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => {

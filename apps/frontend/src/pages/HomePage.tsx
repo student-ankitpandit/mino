@@ -247,7 +247,13 @@ export function HomePage() {
                   <span>Go to Workspace</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
-                <UserAvatar email={user.email} id={user.id} size="sm" />
+                <UserAvatar
+                  email={user.email}
+                  id={user.id}
+                  name={user.name}
+                  profilePicture={user.profilePicture}
+                  size="sm"
+                />
               </div>
             ) : (
               <>

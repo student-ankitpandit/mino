@@ -112,7 +112,9 @@ router.get("/sections", authMiddleware, async (req, res) => {
                 user: {
                   select: {
                     id: true,
-                    email: true
+                    email: true,
+                    profilePicture: true,
+                    name: true,
                   }
                 }
               }

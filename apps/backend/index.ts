@@ -6,6 +6,7 @@ import sectionRoutes from "./src/section.ts"
 import issueRoutes from "./src/issue.ts"
 import commentRoutes from "./src/comment.ts"
 import inviteRoutes from "./src/invite.ts"
+import googleAuthRoutes from "./src/googleAuth.ts"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 
@@ -44,6 +45,7 @@ app.use("/api/v1", sectionRoutes)
 app.use("/api/v1", issueRoutes)
 app.use("/api/v1", commentRoutes)
 app.use("/api/v1", inviteRoutes)
+app.use("/api/v1", googleAuthRoutes)
 
 const PORT = Number(process.env.PORT || 3001)
 app.listen(PORT, () => console.log(`server is running on port ${PORT}`))

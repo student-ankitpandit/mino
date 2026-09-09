@@ -5,6 +5,7 @@ import { useBoardSocket } from "@/hooks/useBoardSocket";
 import { KanbanColumn } from "@/components/board/KanbanColumn";
 import { CardDetailModal } from "@/components/board/CardDetailModal";
 import { InviteMemberModal } from "@/components/modals/InviteMemberModal";
+import { ConfirmModal } from "@/components/modals/ConfirmModal";
 import { UserAvatar } from "@/components/common/UserAvatar";
 import {
   boardApi,
@@ -207,17 +208,27 @@ export function BoardPage() {
     sendBoardChanged();
   };
 
-  const handleIssueDeleted = async (issueId: string) => {
-    if (!confirm("Are you sure you want to delete this issue?")) return;
+  const [issueToDelete, setIssueToDelete] = useState<string | null>(null);
+  const [isDeletingIssue, setIsDeletingIssue] = useState(false);
 
+  const handleIssueDeleted = (issueId: string) => {
+    setIssueToDelete(issueId);
+  };
+
+  const handleConfirmDeleteIssue = async () => {
+    if (!issueToDelete) return;
+    setIsDeletingIssue(true);
     try {
-      await issueApi.deleteIssue(issueId);
-      setIssues((prev) => prev.filter((i) => i.id !== issueId));
+      await issueApi.deleteIssue(issueToDelete);
+      setIssues((prev) => prev.filter((i) => i.id !== issueToDelete));
       setIsCardModalOpen(false);
       setSelectedIssue(null);
+      setIssueToDelete(null);
       sendBoardChanged();
     } catch (err) {
-      alert("Failed to delete issue");
+      console.error("Failed to delete issue", err);
+    } finally {
+      setIsDeletingIssue(false);
     }
   };
 
@@ -305,7 +316,14 @@ export function BoardPage() {
             {/* Active Users Avatar Group */}
             <div className="flex -space-x-1.5 items-center pl-1 border-l border-white/[0.08]">
               {/* Current user */}
-              <UserAvatar email={user?.email} id={user?.id} size="sm" showTooltip />
+              <UserAvatar
+                email={user?.email}
+                id={user?.id}
+                name={user?.name}
+                profilePicture={user?.profilePicture}
+                size="sm"
+                showTooltip
+              />
               {/* Other active socket users */}
               {activeUserIds.map((uid) => (
                 <UserAvatar key={uid} id={uid} size="sm" showTooltip />
@@ -440,6 +458,19 @@ export function BoardPage() {
           onClose={() => setIsInviteOpen(false)}
         />
       )}
+
+      {/* Delete Issue Confirmation Dialog */}
+      <ConfirmModal
+        isOpen={Boolean(issueToDelete)}
+        title="Delete card?"
+        message="Are you sure you want to permanently delete this card? This action cannot be undone."
+        confirmText="Delete card"
+        cancelText="Keep card"
+        variant="danger"
+        loading={isDeletingIssue}
+        onConfirm={handleConfirmDeleteIssue}
+        onClose={() => !isDeletingIssue && setIssueToDelete(null)}
+      />
     </div>
   );
 }

@@ -273,8 +273,14 @@ export function CardDetailModal({
                     key={m.id}
                     className="flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] pr-2.5 pl-1 py-1 text-xs text-slate-200"
                   >
-                    <UserAvatar email={m.user?.email} id={m.userId} size="sm" />
-                    <span>{m.user?.email || "Member"}</span>
+                    <UserAvatar
+                      email={m.user?.email}
+                      id={m.userId}
+                      name={m.user?.name}
+                      profilePicture={m.user?.profilePicture}
+                      size="sm"
+                    />
+                    <span>{m.user?.name || m.user?.email || "Member"}</span>
                   </div>
                 ))}
               </div>
@@ -322,11 +328,17 @@ export function CardDetailModal({
                     className="flex items-start justify-between gap-3 rounded-xl border border-white/[0.04] bg-white/[0.02] p-3 text-xs"
                   >
                     <div className="flex items-start gap-2.5">
-                      <UserAvatar email={c.user?.email} id={c.userId || undefined} size="sm" />
+                      <UserAvatar
+                        email={c.user?.email}
+                        id={c.userId || undefined}
+                        name={c.user?.name}
+                        profilePicture={c.user?.profilePicture}
+                        size="sm"
+                      />
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-white">
-                            {c.user?.email || "Team member"}
+                            {c.user?.name || c.user?.email || "Team member"}
                           </span>
                         </div>
                         <p className="text-slate-300 mt-1 whitespace-pre-wrap">{c.comment}</p>

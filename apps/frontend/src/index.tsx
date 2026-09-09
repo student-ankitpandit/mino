@@ -4,10 +4,11 @@ import index from "./index.html";
 const server = serve({
   routes: {
     "/env.js": () => {
+      const isProd = process.env.NODE_ENV === "production";
       const backendUrl =
         process.env.BACKEND_URL ||
         process.env.VITE_BACKEND_URL ||
-        "https://mino-be.onrender.com";
+        (isProd ? "https://mino-be.onrender.com" : "http://localhost:3001");
       const wsUrl =
         process.env.WS_URL ||
         process.env.VITE_WS_URL ||

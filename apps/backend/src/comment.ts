@@ -52,7 +52,9 @@ router.post("/comment/:issueId", authMiddleware, async (req, res) => {
       user: {
         select: {
           id: true,
-          email: true
+          email: true,
+          profilePicture: true,
+          name: true,
         }
       }
     }
@@ -104,7 +106,9 @@ router.get("/comment/:issueId", authMiddleware, async (req, res) => {
           user: {
             select: {
               id: true,
-              email: true
+              email: true,
+              profilePicture: true,
+              name: true,
             }
           }
         }
@@ -157,7 +161,9 @@ router.patch("/comment/:commentId", authMiddleware, async (req, res) => {
       user: {
         select: {
           id: true,
-          email: true
+          email: true,
+          profilePicture: true,
+          name: true,
         }
       }
     }
@@ -189,7 +195,9 @@ router.patch("/comment/:commentId", authMiddleware, async (req, res) => {
       user: {
         select: {
           id: true,
-          email: true
+          email: true,
+          profilePicture: true,
+          name: true,
         }
       }
     }
@@ -233,7 +241,9 @@ router.delete("/comment/:commentId", authMiddleware, async (req, res) => {
       user: {
         select: {
           id: true,
-          email: true
+          email: true,
+          profilePicture: true,
+          name: true,
         }
       }
     }

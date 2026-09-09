@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { orgApi, type Membership } from "@/lib/api";
 import { UserAvatar } from "../common/UserAvatar";
+import { ConfirmModal } from "./ConfirmModal";
 import { X, Users, Trash2, Shield, AlertCircle } from "lucide-react";
 
 interface MembersModalProps {
@@ -42,15 +43,21 @@ export function MembersModal({
     }
   }, [isOpen, orgId]);
 
-  const handleRemoveMember = async (userId: string) => {
-    if (!orgId) return;
-    if (!confirm("Are you sure you want to remove this member?")) return;
+  const [memberToRemove, setMemberToRemove] = useState<string | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
+
+  const handleConfirmRemove = async () => {
+    if (!orgId || !memberToRemove) return;
+    setIsRemoving(true);
 
     try {
-      await orgApi.removeMember(orgId, userId);
-      setMembers((prev) => prev.filter((m) => m.userId !== userId));
+      await orgApi.removeMember(orgId, memberToRemove);
+      setMembers((prev) => prev.filter((m) => m.userId !== memberToRemove));
+      setMemberToRemove(null);
     } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to remove member");
+      console.error("Failed to remove member", err);
+    } finally {
+      setIsRemoving(false);
     }
   };
 
@@ -99,14 +106,25 @@ export function MembersModal({
                   className="flex items-center justify-between rounded-xl border border-white/[0.04] bg-white/[0.02] p-3 hover:bg-white/[0.04] transition"
                 >
                   <div className="flex items-center gap-3">
-                    <UserAvatar email={m.user?.email} id={m.userId} size="md" />
+                    <UserAvatar
+                      email={m.user?.email}
+                      id={m.userId}
+                      name={m.user?.name}
+                      profilePicture={m.user?.profilePicture}
+                      size="md"
+                    />
                     <div>
                       <p className="text-sm font-medium text-white flex items-center gap-2">
-                        <span>{m.user?.email || "Team member"}</span>
+                        <span>{m.user?.name || m.user?.email || "Team member"}</span>
                         {isSelf && (
-                          <span className="text-[10px] text-slate-400 font-normal">(You)</span>
+                          <span className="text-[10px] text-indigo-400 font-medium px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20">
+                            You
+                          </span>
                         )}
                       </p>
+                      {m.user?.name && (
+                        <p className="text-[11px] text-slate-400">{m.user.email}</p>
+                      )}
                       <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 capitalize">
                         {m.role === "admin" ? (
                           <>
@@ -123,7 +141,7 @@ export function MembersModal({
                   {isAdmin && !isSelf && (
                     <button
                       type="button"
-                      onClick={() => handleRemoveMember(m.userId)}
+                      onClick={() => setMemberToRemove(m.userId)}
                       className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-500/10 hover:text-rose-400 transition"
                       title="Remove member"
                     >
@@ -146,6 +164,18 @@ export function MembersModal({
           </button>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={Boolean(memberToRemove)}
+        title="Remove member?"
+        message="Are you sure you want to remove this member from the organization? They will lose access to all its boards."
+        confirmText="Remove member"
+        cancelText="Cancel"
+        variant="danger"
+        loading={isRemoving}
+        onConfirm={handleConfirmRemove}
+        onClose={() => !isRemoving && setMemberToRemove(null)}
+      />
     </div>
   );
 }

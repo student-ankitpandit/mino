@@ -9,6 +9,7 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { BoardPage } from "./pages/BoardPage";
 import { ChangelogPage } from "./pages/ChangelogPage";
 import { PrivacyTermsPage } from "./pages/PrivacyTermsPage";
+import { AuthCallbackPage } from "./pages/AuthCallbackPage";
 
 import { ShowcaseBoard, ShowcaseDashboard, ShowcaseOrg, ShowcaseSettings } from "./pages/ShowcasePreview";
 
@@ -32,6 +33,7 @@ export function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/login" element={<AuthPage />} />
           <Route path="/signup" element={<AuthPage />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route path="/create-org" element={<CreateOrgPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/board/:boardId" element={<BoardPage />} />

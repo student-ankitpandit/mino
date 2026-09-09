@@ -69,7 +69,9 @@ router.get("/board/:boardId", authMiddleware, async (req, res) => {
                   user: {
                     select: {
                       id: true,
-                      email: true
+                      email: true,
+                      profilePicture: true,
+                      name: true,
                     }
                   }
                 }
@@ -79,7 +81,9 @@ router.get("/board/:boardId", authMiddleware, async (req, res) => {
                   user: {
                     select: {
                       id: true,
-                      email: true
+                      email: true,
+                      profilePicture: true,
+                      name: true,
                     }
                   }
                 }

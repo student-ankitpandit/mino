@@ -115,7 +115,13 @@ export function ChangelogPage() {
                   <span>Workspace</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
-                <UserAvatar email={user.email} id={user.id} size="sm" />
+                <UserAvatar
+                  email={user.email}
+                  id={user.id}
+                  name={user.name}
+                  profilePicture={user.profilePicture}
+                  size="sm"
+                />
               </div>
             ) : (
               <Link

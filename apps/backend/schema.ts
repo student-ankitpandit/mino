@@ -66,3 +66,8 @@ export const commentCreateSchema = z.object({
 export const updateCommentSchema = z.object({
   comment: z.string().min(1)
 })
+
+export const updateProfileSchema = z.object({
+  profilePicture: z.string().nullable().optional(),
+  name: z.string().nullable().optional(),
+})

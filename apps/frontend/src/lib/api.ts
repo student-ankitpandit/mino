@@ -30,11 +30,19 @@ const envWsUrl =
   getEnvVar("WS_URL") ||
   "";
 
+const isLocalhost =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1");
+
 const formatApiUrl = (url: string) => {
-  if (!url) {
-    if (typeof window !== "undefined" && window.location.hostname.includes("vercel.app")) {
-      return "https://mino-be.onrender.com/api/v1";
+  if (isLocalhost) {
+    // When developing on localhost, connect to local backend (port 3001)
+    if (!url || url.includes("mino-be.onrender.com")) {
+      return "http://localhost:3001/api/v1";
     }
+  }
+  if (!url) {
     return "https://mino-be.onrender.com/api/v1";
   }
   const trimmed = url.replace(/\/+$/, "");
@@ -85,6 +93,9 @@ api.interceptors.response.use(
 export interface User {
   id: string;
   email: string;
+  profilePicture?: string | null;
+  name?: string | null;
+  googleId?: string | null;
 }
 
 export interface Org {
@@ -156,6 +167,17 @@ export const authApi = {
   me: async () => {
     const res = await api.get("/me");
     return res.data;
+  },
+  updateProfile: async (data: { profilePicture?: string | null; name?: string | null }) => {
+    const res = await api.patch("/profile", data);
+    return res.data;
+  },
+  getGoogleAuthUrl: () => {
+    const returnUrl =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "http://localhost:3000";
+    return `${BACKEND_BASE_URL}/auth/google?redirect=${encodeURIComponent(returnUrl)}`;
   },
 };
 

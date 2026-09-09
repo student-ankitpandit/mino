@@ -182,6 +182,8 @@ router.get("/membership/:orgId", authMiddleware, async (req, res) => {
         select: {
           id: true,
           email: true,
+          profilePicture: true,
+          name: true,
         }
       }
     }

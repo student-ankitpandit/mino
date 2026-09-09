@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { KanbanCard } from "./KanbanCard";
+import { ConfirmModal } from "../modals/ConfirmModal";
 import { sectionApi, issueApi, type Section, type Issue } from "@/lib/api";
 import { Plus, X, Trash2, Edit2, Check, MoreVertical } from "lucide-react";
 
@@ -51,14 +52,20 @@ export function KanbanColumn({
     }
   };
 
-  const handleDeleteSection = async () => {
-    if (!confirm(`Delete section "${section.title}" and all its issues?`)) return;
+  // Delete column state
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
+  const handleDeleteSection = async () => {
+    setIsDeleting(true);
     try {
       await sectionApi.deleteSection(section.id);
       onSectionDeleted(section.id);
+      setIsDeleteModalOpen(false);
     } catch (err) {
-      alert("Failed to delete section");
+      console.error("Failed to delete section", err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -95,16 +102,16 @@ export function KanbanColumn({
           onCardDrop(issueId, section.id);
         }
       }}
-      className={`flex flex-col w-72 sm:w-80 flex-shrink-0 rounded-2xl border bg-slate-950/60 p-3 backdrop-blur-md transition-all duration-150 max-h-[calc(100vh-140px)] ${
+      className={`flex flex-col w-72 sm:w-80 flex-shrink-0 rounded-2xl border bg-slate-950/60 p-3 backdrop-blur-md transition-all duration-150 max-h-[calc(100vh-140px)] overflow-hidden ${
         isDragOver
           ? "border-indigo-500/80 bg-indigo-950/20 ring-2 ring-indigo-500/20"
           : "border-white/[0.08]"
       }`}
     >
       {/* Column Header */}
-      <div className="flex items-center justify-between pb-3 px-1">
+      <div className="flex items-start justify-between gap-2 pb-3 px-1">
         {isEditingTitle ? (
-          <div className="flex items-center gap-1.5 flex-1 mr-2">
+          <div className="flex items-center gap-1.5 flex-1 min-w-0">
             <input
               type="text"
               value={title}
@@ -117,7 +124,7 @@ export function KanbanColumn({
             <button
               type="button"
               onClick={handleSaveTitle}
-              className="rounded p-1 text-white hover:bg-indigo-600"
+              className="rounded p-1 text-white hover:bg-indigo-600 flex-shrink-0"
             >
               <Check className="h-4 w-4" />
             </button>
@@ -125,12 +132,15 @@ export function KanbanColumn({
         ) : (
           <div
             onClick={() => setIsEditingTitle(true)}
-            className="flex items-center gap-2 cursor-pointer group flex-1 mr-2"
+            className="flex items-start gap-2 cursor-pointer group flex-1 min-w-0"
           >
-            <h3 className="font-bold text-sm text-slate-200 group-hover:text-indigo-300 transition truncate">
+            <h3
+              title={section.title}
+              className="font-bold text-sm text-slate-200 group-hover:text-indigo-300 transition break-words line-clamp-2 leading-snug flex-1 min-w-0"
+            >
               {section.title}
             </h3>
-            <span className="rounded-full bg-white/[0.08] px-2 py-0.5 text-[11px] font-semibold text-slate-400">
+            <span className="flex-shrink-0 rounded-full bg-white/[0.08] px-2 py-0.5 text-[11px] font-semibold text-slate-400 mt-0.5">
               {issues.length}
             </span>
           </div>
@@ -138,8 +148,8 @@ export function KanbanColumn({
 
         <button
           type="button"
-          onClick={handleDeleteSection}
-          className="rounded-lg p-1 text-slate-500 hover:bg-rose-500/10 hover:text-rose-400 transition"
+          onClick={() => setIsDeleteModalOpen(true)}
+          className="rounded-lg p-1 text-slate-500 hover:bg-rose-500/10 hover:text-rose-400 transition flex-shrink-0 mt-0.5"
           title="Delete column"
         >
           <Trash2 className="h-3.5 w-3.5" />
@@ -216,6 +226,24 @@ export function KanbanColumn({
           </button>
         )}
       </div>
+      {/* In-app Delete Confirmation Dialog */}
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        title="Delete list?"
+        message={
+          issues.length === 0
+            ? `Are you sure you want to delete "${section.title}"? This action cannot be undone.`
+            : `Are you sure you want to delete "${section.title}" and its ${issues.length} card${
+                issues.length === 1 ? "" : "s"
+              }? This action cannot be undone.`
+        }
+        confirmText="Delete list"
+        cancelText="Cancel"
+        variant="danger"
+        loading={isDeleting}
+        onConfirm={handleDeleteSection}
+        onClose={() => !isDeleting && setIsDeleteModalOpen(false)}
+      />
     </div>
   );
 }

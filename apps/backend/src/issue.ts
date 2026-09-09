@@ -106,6 +106,8 @@ router.get("/issue/:sectionId", authMiddleware, async (req, res) => {
                 select: {
                   id: true,
                   email: true,
+                  profilePicture: true,
+                  name: true,
                 }
               }
             }
@@ -160,6 +162,8 @@ router.get("/issues", authMiddleware, async (req, res) => {
             select: {
               id: true,
               email: true,
+              profilePicture: true,
+              name: true,
             }
           }
         }
@@ -216,6 +220,8 @@ router.patch("/issue/:IssueId", authMiddleware, async (req, res) => {
             select: {
               id: true,
               email: true,
+              profilePicture: true,
+              name: true,
             }
           }
         }
@@ -275,6 +281,8 @@ router.put("/issue/move/:issueId/:sectionId", authMiddleware, async (req, res) =
             select: {
               id: true,
               email: true,
+              profilePicture: true,
+              name: true,
             }
           }
         }
@@ -352,6 +360,8 @@ router.delete("/issue/:issueId", authMiddleware, async (req, res) => {
             select: {
               id: true,
               email: true,
+              profilePicture: true,
+              name: true,
             }
           }
         }

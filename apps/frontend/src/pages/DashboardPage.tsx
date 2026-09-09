@@ -6,6 +6,7 @@ import { CreateOrgModal } from "@/components/modals/CreateOrgModal";
 import { CreateBoardModal } from "@/components/modals/CreateBoardModal";
 import { InviteMemberModal } from "@/components/modals/InviteMemberModal";
 import { MembersModal } from "@/components/modals/MembersModal";
+import { ConfirmModal } from "@/components/modals/ConfirmModal";
 import {
   orgApi,
   boardApi,
@@ -103,15 +104,26 @@ export function DashboardPage() {
   const currentMembership = organizations.find((m) => m.org?.id === currentOrgId);
   const isAdmin = currentMembership?.role === "admin";
 
-  const handleDeleteBoard = async (e: React.MouseEvent, boardId: string) => {
+  const [boardToDelete, setBoardToDelete] = useState<Board | null>(null);
+  const [isDeletingBoard, setIsDeletingBoard] = useState(false);
+
+  const handleDeleteBoard = (e: React.MouseEvent, board: Board) => {
     e.stopPropagation();
-    if (!confirm("Are you sure you want to delete this board?")) return;
+    setBoardToDelete(board);
+  };
+
+  const handleConfirmDeleteBoard = async () => {
+    if (!boardToDelete) return;
+    setIsDeletingBoard(true);
 
     try {
-      await boardApi.deleteBoard(boardId);
-      setBoards((prev) => prev.filter((b) => b.id !== boardId));
+      await boardApi.deleteBoard(boardToDelete.id);
+      setBoards((prev) => prev.filter((b) => b.id !== boardToDelete.id));
+      setBoardToDelete(null);
     } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to delete board");
+      console.error("Failed to delete board", err);
+    } finally {
+      setIsDeletingBoard(false);
     }
   };
 
@@ -267,15 +279,15 @@ export function DashboardPage() {
                         </div>
 
                         {isAdmin && (
-                          <button
-                            type="button"
-                            onClick={(e) => handleDeleteBoard(e, board.id)}
-                            className="opacity-0 group-hover:opacity-100 rounded-lg p-1 text-slate-400 hover:bg-rose-500/10 hover:text-rose-400 transition"
-                            title="Delete board"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeleteBoard(e, board)}
+                          className="rounded-lg p-1.5 text-slate-400 opacity-0 group-hover:opacity-100 hover:bg-rose-500/10 hover:text-rose-400 transition"
+                          title="Delete board"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
                       </div>
 
                       <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.04]">
@@ -340,6 +352,18 @@ export function DashboardPage() {
         isAdmin={isAdmin}
         currentUserId={user?.id}
         onClose={() => setIsMembersOpen(false)}
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(boardToDelete)}
+        title="Delete board?"
+        message={`Are you sure you want to delete "${boardToDelete?.title}" and all its lists and cards? This action cannot be undone.`}
+        confirmText="Delete board"
+        cancelText="Cancel"
+        variant="danger"
+        loading={isDeletingBoard}
+        onConfirm={handleConfirmDeleteBoard}
+        onClose={() => !isDeletingBoard && setBoardToDelete(null)}
       />
     </div>
   );
